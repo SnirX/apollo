@@ -1,0 +1,4 @@
+.idea/*
+*.pyc
+apollo/*.pyc
+tests/*.pyc
