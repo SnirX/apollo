@@ -18,7 +18,7 @@ def cli():
 
 
 @click.command()
-@click.option('--log_level', default="info")
+@click.option('--log-level', default="info")
 @click.option('--verbose', is_flag=True)
 @click.option('--node', default=HOSTNAME)
 @click.option('--bucket', required=True)
@@ -30,7 +30,7 @@ def cli():
 def snapshot(log_level, verbose, node, bucket, aws_access_key, aws_secret_key, cassandra_data_dir, cassandra_bin_dir,
              snapshot_type):
     try:
-        logging.basicConfig(level=logging.getLevelName(log_level), format='[%(levelname)s] [%(asctime)s] %(message)s')
+        logging.basicConfig(level=logging.getLevelName(log_level.upper()), format='[%(levelname)s] [%(asctime)s] %(message)s')
         validate_aws_permissions(aws_access_key, aws_secret_key)
 
         repository_handler = S3Handler(bucket, aws_access_key, aws_secret_key)
