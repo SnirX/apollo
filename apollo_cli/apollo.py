@@ -29,7 +29,7 @@ def cli():
 @click.option('--cassandra-bin-dir', default='/bin')
 @click.option('--snapshot-type', type=click.Choice(['full', 'incremental']), default='full')
 @click.option('--upload-chunksize', default=10, type=int)
-@click.option('--upload-concurrency', default=250*1024, type=int)
+@click.option('--upload-concurrency', default=25*1024, type=int)
 def snapshot(log_level, verbose, ssl_no_verify, node, bucket, aws_access_key, aws_secret_key, cassandra_data_dir, cassandra_bin_dir,
              snapshot_type, upload_chunksize, upload_concurrency):
     try:

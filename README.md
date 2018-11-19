@@ -19,7 +19,6 @@ apollo snapshot --bucket "example_bucket" \
                 --cassandra-data-dir "/data" \ # Optional - default is /var/lib/cassandra/data
                 --cassandra-bin-dir "/bin" \ # Optional - default is /bin
                 --snapshot-type "full" \ # Optional - default is full, options are full/incremental
-                --verbose \ # Optional - prints uploads statistics per SSTable
-                --log-level "info" # Optional - default is info
+                --verbose # Optional - prints uploads statistics per SSTable
 
 ```
