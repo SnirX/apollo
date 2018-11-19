@@ -28,14 +28,16 @@ def cli():
 @click.option('--cassandra-data-dir', default='/var/lib/cassandra/data')
 @click.option('--cassandra-bin-dir', default='/bin')
 @click.option('--snapshot-type', type=click.Choice(['full', 'incremental']), default='full')
+@click.option('--upload-chunksize', default=10, type=int)
+@click.option('--upload-concurrency', default=250*1024, type=int)
 def snapshot(log_level, verbose, ssl_no_verify, node, bucket, aws_access_key, aws_secret_key, cassandra_data_dir, cassandra_bin_dir,
-             snapshot_type):
+             snapshot_type, upload_chunksize, upload_concurrency):
     try:
         cassandra_handler = CassandraHandler(node, cassandra_data_dir, cassandra_bin_dir, snapshot_type)
         logging.basicConfig(level=logging.getLevelName(log_level.upper()), format='[%(levelname)s] [%(asctime)s] %(message)s')
         validate_aws_permissions(aws_access_key, aws_secret_key)
 
-        repository_handler = S3Handler(bucket, aws_access_key, aws_secret_key, ssl_no_verify)
+        repository_handler = S3Handler(bucket, aws_access_key, aws_secret_key, ssl_no_verify, upload_chunksize, upload_concurrency)
         cassandra_handler = CassandraHandler(node, cassandra_data_dir, cassandra_bin_dir, snapshot_type)
         snapshot_metadata = SnapshotMetadata(cassandra_handler, repository_handler)
 

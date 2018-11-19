@@ -23,7 +23,7 @@ class RepositoryTemplate(object):
 
 
 class S3Handler(RepositoryTemplate):
-    def __init__(self, bucket_name, aws_access_key_id, aws_secret_key_id, ssl_no_verify):
+    def __init__(self, bucket_name, aws_access_key_id, aws_secret_key_id, ssl_no_verify, upload_chunksize, upload_concurrency):
         self._bucket_name = bucket_name
         self._aws_access_key_id = aws_access_key_id
         self._aws_secret_key_id = aws_secret_key_id
@@ -32,19 +32,21 @@ class S3Handler(RepositoryTemplate):
             aws_secret_access_key=self._aws_secret_key_id
         )
         self._s3_conn = self._session.resource('s3', verify=not ssl_no_verify)
+        self._upload_chunksize = upload_chunksize
+        self._upload_concurrency = self.convert_byte_to_kb(upload_concurrency)
 
     @property
     def bucket(self):
         return self._bucket_name
 
-    def upload(self, local_file_path, s3_key_path, upload_concurrency=10, upload_chunksize=1024 * 25, verbose=True):
-        if upload_concurrency > 1:
+    def upload(self, local_file_path, s3_key_path, verbose=True):
+        if self._upload_concurrency > 1:
             threaded_upload = True
         else:
             threaded_upload = False
 
-        config = TransferConfig(multipart_threshold=upload_chunksize, max_concurrency=upload_concurrency,
-                                multipart_chunksize=upload_chunksize, use_threads=threaded_upload)
+        config = TransferConfig(multipart_threshold=self._upload_chunksize, max_concurrency=self._upload_concurrency,
+                                multipart_chunksize=self._upload_chunksize, use_threads=threaded_upload)
 
         if verbose:
             self._s3_conn.meta.client.upload_file(local_file_path, self._bucket_name, s3_key_path,
@@ -70,6 +72,9 @@ class S3Handler(RepositoryTemplate):
         except Exception:
             raise S3UploadError("Error save metadata")
 
+    @staticmethod
+    def convert_byte_to_kb(num):
+        return num * 1024
 
 class _UploadProgressPercentage(object):
     def __init__(self, filename):
