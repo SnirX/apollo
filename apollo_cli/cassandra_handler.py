@@ -3,6 +3,7 @@ import logging
 from subprocess import (Popen, PIPE)
 from constants import (NODETOOL_COMMAND, NODETOOL_FLUSH_ARG, NODETOOL_SNAPSHOT_ARG, NODETOOL_CLEAR_SNAPSHOT_ARG)
 from apollo_exceptions import (CassandraFlushError, CassandraSnapshotError, CassandraOSError)
+from cassandra_snapshot_exclude import (keyspaces_exclude, tables_exclude)
 
 logger = logging.getLogger(__name__)
 
@@ -98,11 +99,15 @@ class CassandraHandler(object):
             keyspaces = os.listdir(self.data_directory)
 
             for keyspace in keyspaces:
+                if keyspace in keyspaces_exclude:
+                    continue 
                 sstables_fs_tree[keyspace] = dict()
                 keyspace_path = os.path.join(self.data_directory, keyspace)
                 tables = os.listdir(keyspace_path)
 
                 for table in tables:
+                    if keyspace in tables_exclude and table in tables_exclude[keyspace]:
+                        continue
                     sstables_fs_tree[keyspace][table] = list()
                     table_path = os.path.join(keyspace_path, table)
                     sstables_snapshot_path = os.path.join(table_path, backup_dir_suffix)
