@@ -23,7 +23,7 @@ class RepositoryTemplate(object):
 
 
 class S3Handler(RepositoryTemplate):
-    def __init__(self, bucket_name, aws_access_key_id, aws_secret_key_id):
+    def __init__(self, bucket_name, aws_access_key_id, aws_secret_key_id, ssl_no_verify):
         self._bucket_name = bucket_name
         self._aws_access_key_id = aws_access_key_id
         self._aws_secret_key_id = aws_secret_key_id
@@ -31,7 +31,7 @@ class S3Handler(RepositoryTemplate):
             aws_access_key_id=self._aws_access_key_id,
             aws_secret_access_key=self._aws_secret_key_id
         )
-        self._s3_conn = self._session.resource('s3')
+        self._s3_conn = self._session.resource('s3', verify=not ssl_no_verify)
 
     @property
     def bucket(self):

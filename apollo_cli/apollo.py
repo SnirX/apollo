@@ -20,6 +20,7 @@ def cli():
 @click.command()
 @click.option('--log-level', default="info")
 @click.option('--verbose', is_flag=True)
+@click.option('--ssl-no-verify', is_flag=True)
 @click.option('--node', default=HOSTNAME)
 @click.option('--bucket', required=True)
 @click.option('--aws-access-key', default=AWS_ACCESS_KEY)
@@ -27,14 +28,14 @@ def cli():
 @click.option('--cassandra-data-dir', default='/var/lib/cassandra/data')
 @click.option('--cassandra-bin-dir', default='/bin')
 @click.option('--snapshot-type', type=click.Choice(['full', 'incremental']), default='full')
-def snapshot(log_level, verbose, node, bucket, aws_access_key, aws_secret_key, cassandra_data_dir, cassandra_bin_dir,
+def snapshot(log_level, verbose, ssl_no_verify, node, bucket, aws_access_key, aws_secret_key, cassandra_data_dir, cassandra_bin_dir,
              snapshot_type):
     try:
         cassandra_handler = CassandraHandler(node, cassandra_data_dir, cassandra_bin_dir, snapshot_type)
         logging.basicConfig(level=logging.getLevelName(log_level.upper()), format='[%(levelname)s] [%(asctime)s] %(message)s')
         validate_aws_permissions(aws_access_key, aws_secret_key)
 
-        repository_handler = S3Handler(bucket, aws_access_key, aws_secret_key)
+        repository_handler = S3Handler(bucket, aws_access_key, aws_secret_key, ssl_no_verify)
         cassandra_handler = CassandraHandler(node, cassandra_data_dir, cassandra_bin_dir, snapshot_type)
         snapshot_metadata = SnapshotMetadata(cassandra_handler, repository_handler)
 
