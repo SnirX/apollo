@@ -100,7 +100,7 @@ class CassandraHandler(object):
 
             for keyspace in keyspaces:
                 if keyspace in keyspaces_exclude:
-                    continue 
+                    continue
                 sstables_fs_tree[keyspace] = dict()
                 keyspace_path = os.path.join(self.data_directory, keyspace)
                 tables = os.listdir(keyspace_path)
@@ -111,16 +111,21 @@ class CassandraHandler(object):
                     sstables_fs_tree[keyspace][table] = list()
                     table_path = os.path.join(keyspace_path, table)
                     sstables_snapshot_path = os.path.join(table_path, backup_dir_suffix)
-                    sstables = os.listdir(sstables_snapshot_path)
+                    try:
+                        sstables = os.listdir(sstables_snapshot_path)
+                    except:
+                        continue
 
                     for sstable in sstables:
                         sstable_path = os.path.join(sstables_snapshot_path, sstable)
                         sstables_fs_tree[keyspace][table].append(sstable_path)
+
         except OSError as e:
             raise CassandraOSError(e)
 
         logger.info("Finished generating data directory structure")
         return sstables_fs_tree
+
 
     def _return_snapshot_suffix(self):
         if self._snapshot_type == "full":
