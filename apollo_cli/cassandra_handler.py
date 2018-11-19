@@ -15,8 +15,8 @@ class CassandraHandler(object):
         self._data_directory = data_directory
         self.bin_directory = bin_directory
         self._nodetool = os.path.join(self.bin_directory, NODETOOL_COMMAND)
+        self._snapshot_id = self.export_snapshot() if self._snapshot_type == "full" else None
         self._sstables_to_snapshot = self._return_sstables_list()
-        self._snapshot_id = self.export_snapshot() if self._snapshot_id == "full" else None
         self._flushdb()
 
     @property
@@ -46,9 +46,8 @@ class CassandraHandler(object):
             process.communicate()
             exit_code = process.wait()
             logger.info("Cassandra memtables are flushed to disk")
-        except Exception:
-            raise CassandraFlushError("failed to run {nodetool_command} {flush_arg}".format(
-                nodetool_command=self._nodetool, flush_arg=NODETOOL_FLUSH_ARG))
+        except Exception as e:
+            raise CassandraFlushError(e)
 
         if exit_code == 0:
             return self
@@ -59,16 +58,15 @@ class CassandraHandler(object):
         try:
             logger.info("Performing snapshot to disk")
             process = Popen([self._nodetool, NODETOOL_SNAPSHOT_ARG], stdout=PIPE)
-            self._snapshot_id = self.extract_snapshot_id(process.stdout.readlines())
+            snapshot_id = self.extract_snapshot_id(process.stdout.readlines())
             process.communicate()
             exit_code = process.wait()
-            logger.info("Finished snapshot request - snapshot id: {snapshot_id}".format(snapshot_id=self._snapshot_id))
-        except Exception:
-            raise CassandraSnapshotError("failed to run {nodetool_command} {snapshot_arg}".format(
-                nodetool_command=self._nodetool, snapshot_arg=NODETOOL_SNAPSHOT_ARG))
+            logger.info("Finished snapshot request - snapshot id: {snapshot_id}".format(snapshot_id=snapshot_id))
+        except Exception as e:
+            raise CassandraSnapshotError(e)
 
         if exit_code == 0:
-            return self._snapshot_id
+            return snapshot_id
         else:
             raise CassandraSnapshotError("Failed to export snapshot")
 
@@ -131,4 +129,4 @@ class CassandraHandler(object):
 
     @staticmethod
     def extract_snapshot_id(snapshot_message):
-        return snapshot_message.split(' ')[2].rstrip()
+        return snapshot_message[1].split(' ')[2].rstrip()

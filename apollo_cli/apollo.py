@@ -30,6 +30,7 @@ def cli():
 def snapshot(log_level, verbose, node, bucket, aws_access_key, aws_secret_key, cassandra_data_dir, cassandra_bin_dir,
              snapshot_type):
     try:
+        cassandra_handler = CassandraHandler(node, cassandra_data_dir, cassandra_bin_dir, snapshot_type)
         logging.basicConfig(level=logging.getLevelName(log_level.upper()), format='[%(levelname)s] [%(asctime)s] %(message)s')
         validate_aws_permissions(aws_access_key, aws_secret_key)
 
@@ -40,6 +41,7 @@ def snapshot(log_level, verbose, node, bucket, aws_access_key, aws_secret_key, c
         cassandra_backup_to_s3(snapshot_metadata, repository_handler, cassandra_handler, verbose)
     except Exception as e:
         sys.exit(e)
+
 
 cli.add_command(snapshot)
 
