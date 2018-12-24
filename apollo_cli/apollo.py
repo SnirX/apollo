@@ -30,18 +30,21 @@ def cli():
 @click.option('--snapshot-type', type=click.Choice(['full', 'incremental']), default='full')
 @click.option('--upload-chunksize', default=10, type=int)
 @click.option('--upload-concurrency', default=25*1024, type=int)
-def snapshot(log_level, verbose, ssl_no_verify, node, bucket, aws_access_key, aws_secret_key, cassandra_data_dir, cassandra_bin_dir,
-             snapshot_type, upload_chunksize, upload_concurrency):
+@click.option('--upload-workers', default=1, type=int)
+def snapshot(log_level, verbose, ssl_no_verify, node, bucket, aws_access_key, aws_secret_key, cassandra_data_dir,
+             cassandra_bin_dir, snapshot_type, upload_chunksize, upload_concurrency, upload_workers):
     try:
-        cassandra_handler = CassandraHandler(node, cassandra_data_dir, cassandra_bin_dir, snapshot_type)
-        logging.basicConfig(level=logging.getLevelName(log_level.upper()), format='[%(levelname)s] [%(asctime)s] %(message)s')
+        logging.basicConfig(level=logging.getLevelName(log_level.upper()),
+                            format='[%(levelname)s] [%(asctime)s] %(message)s')
         validate_aws_permissions(aws_access_key, aws_secret_key)
 
-        repository_handler = S3Handler(bucket, aws_access_key, aws_secret_key, ssl_no_verify, upload_chunksize, upload_concurrency)
+        repository_handler = S3Handler(bucket, aws_access_key, aws_secret_key, ssl_no_verify, upload_chunksize,
+                                       upload_concurrency, upload_workers)
         cassandra_handler = CassandraHandler(node, cassandra_data_dir, cassandra_bin_dir, snapshot_type)
         snapshot_metadata = SnapshotMetadata(cassandra_handler, repository_handler)
 
-        cassandra_backup_to_s3(snapshot_metadata, repository_handler, cassandra_handler, verbose)
+        cassandra_backup_to_s3(snapshot_metadata, repository_handler, cassandra_handler, upload_workers, verbose)
+        cassandra_handler.clear_snapshot()
     except Exception as e:
         sys.exit(e)
 

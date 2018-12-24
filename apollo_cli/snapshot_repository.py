@@ -4,6 +4,7 @@ import os
 import sys
 import logging
 from boto3.s3.transfer import TransferConfig
+from botocore.client import Config
 from abc import (ABCMeta, abstractmethod)
 from apollo_exceptions import S3UploadError
 
@@ -23,7 +24,8 @@ class RepositoryTemplate(object):
 
 
 class S3Handler(RepositoryTemplate):
-    def __init__(self, bucket_name, aws_access_key_id, aws_secret_key_id, ssl_no_verify, upload_chunksize, upload_concurrency):
+    def __init__(self, bucket_name, aws_access_key_id, aws_secret_key_id, ssl_no_verify, upload_chunksize,
+                 upload_concurrency, upload_workers):
         self._bucket_name = bucket_name
         self._aws_access_key_id = aws_access_key_id
         self._aws_secret_key_id = aws_secret_key_id
@@ -31,8 +33,10 @@ class S3Handler(RepositoryTemplate):
             aws_access_key_id=self._aws_access_key_id,
             aws_secret_access_key=self._aws_secret_key_id
         )
-        self._s3_conn = self._session.resource('s3', verify=not ssl_no_verify)
         self._upload_chunksize = upload_chunksize
+        self._upload_workers = upload_workers
+        self._s3_conn = self._session.resource('s3', verify=not ssl_no_verify,
+                                               config=Config(max_pool_connections=self._upload_workers * 15))
         self._upload_concurrency = self.convert_byte_to_kb(upload_concurrency)
 
     @property
@@ -47,6 +51,8 @@ class S3Handler(RepositoryTemplate):
 
         config = TransferConfig(multipart_threshold=self._upload_chunksize, max_concurrency=self._upload_concurrency,
                                 multipart_chunksize=self._upload_chunksize, use_threads=threaded_upload)
+
+        logger.debug("Uploading - {sstable}".format(sstable=local_file_path))
 
         if verbose:
             self._s3_conn.meta.client.upload_file(local_file_path, self._bucket_name, s3_key_path,
@@ -69,12 +75,13 @@ class S3Handler(RepositoryTemplate):
             )
             logger.info("Metadata is saved")
             return response
-        except Exception:
-            raise S3UploadError("Error save metadata")
+        except Exception as e:
+            raise S3UploadError(e)
 
     @staticmethod
     def convert_byte_to_kb(num):
         return num * 1024
+
 
 class _UploadProgressPercentage(object):
     def __init__(self, filename):

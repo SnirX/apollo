@@ -126,7 +126,6 @@ class CassandraHandler(object):
         logger.info("Finished generating data directory structure")
         return sstables_fs_tree
 
-
     def _return_snapshot_suffix(self):
         if self._snapshot_type == "full":
             backup_dir_suffix = os.path.join("snapshots", self._snapshot_id)
