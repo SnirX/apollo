@@ -25,7 +25,7 @@ class RepositoryTemplate(object):
 
 class S3Handler(RepositoryTemplate):
     def __init__(self, bucket_name, aws_access_key_id, aws_secret_key_id, ssl_no_verify, upload_chunksize,
-                 upload_concurrency, upload_workers):
+                 upload_concurrency, upload_workers, storage_class):
         self._bucket_name = bucket_name
         self._aws_access_key_id = aws_access_key_id
         self._aws_secret_key_id = aws_secret_key_id
@@ -38,6 +38,7 @@ class S3Handler(RepositoryTemplate):
         self._s3_conn = self._session.resource('s3', verify=not ssl_no_verify,
                                                config=Config(max_pool_connections=self._upload_workers * 15))
         self._upload_concurrency = self.convert_byte_to_kb(upload_concurrency)
+        self._storage_class =  storage_class
 
     @property
     def bucket(self):
@@ -57,10 +58,12 @@ class S3Handler(RepositoryTemplate):
         if verbose:
             self._s3_conn.meta.client.upload_file(local_file_path, self._bucket_name, s3_key_path,
                                                   Config=config,
-                                                  Callback=_UploadProgressPercentage(local_file_path)
+                                                  Callback=_UploadProgressPercentage(local_file_path),
+                                                  ExtraArgs={'StorageClass': self._storage_class}
                                                   )
         else:
-            self._s3_conn.meta.client.upload_file(local_file_path, self._bucket_name, s3_key_path, Config=config)
+            self._s3_conn.meta.client.upload_file(local_file_path, self._bucket_name, s3_key_path, Config=config,
+                                                  ExtraArgs={'StorageClass': self._storage_class})
 
     def download(self):
         pass
