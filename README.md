@@ -19,6 +19,9 @@ apollo snapshot --bucket "example_bucket" \
                 --cassandra-data-dir "/data" \ # Optional - default is /var/lib/cassandra/data
                 --cassandra-bin-dir "/bin" \ # Optional - default is /bin
                 --snapshot-type "full" \ # Optional - default is full, options are full/incremental
+                --upload-chunksize "250000" \ # Optional - default is 10, multipart upload chunks (bytes) \ 
+                --upload-workers 64 \ # Optional - default is 1, concurrent threads for uploading \
+                --s3-storage-class STANDARD \ # Optional - default is STANDARD, use other classes for reducing costs (e.g. STANDARD_IA)
                 --verbose # Optional - prints uploads statistics per SSTable
 
 ```
