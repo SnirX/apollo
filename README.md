@@ -22,6 +22,7 @@ apollo snapshot --bucket "example_bucket" \
                 --upload-chunksize "250000" \ # Optional - default is 10, multipart upload chunks (bytes) \ 
                 --upload-workers 64 \ # Optional - default is 1, concurrent threads for uploading \
                 --s3-storage-class STANDARD \ # Optional - default is STANDARD, use other classes for reducing costs (e.g. STANDARD_IA)
+                --keyspaces ab \ # Optional - default is full backup of all keyspaces
                 --verbose # Optional - prints uploads statistics per SSTable
 
 ```

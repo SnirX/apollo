@@ -10,11 +10,12 @@ logger = logging.getLogger(__name__)
 
 class CassandraHandler(object):
 
-    def __init__(self, node, data_directory, bin_directory, snapshot_type="full"):
+    def __init__(self, node, data_directory, bin_directory, keyspaces, snapshot_type="full"):
         self._node = node
         self._snapshot_type = snapshot_type
         self._data_directory = data_directory
         self.bin_directory = bin_directory
+        self.keyspaces = keyspaces.split(',')
         self._nodetool = os.path.join(self.bin_directory, NODETOOL_COMMAND)
         self._snapshot_id = self.export_snapshot() if self._snapshot_type == "full" else None
         self._sstables_to_snapshot = self._return_sstables_list()
@@ -95,11 +96,18 @@ class CassandraHandler(object):
 
         logger.info("Generating Cassandra data directory structure from path - {data_dir_path}".format(
             data_dir_path=self._data_directory))
+        if self.keyspaces is not None:
+            keyspaces_include = self.keyspaces
+        else:
+            keyspaces_include = None
+
         try:
             keyspaces = os.listdir(self.data_directory)
 
             for keyspace in keyspaces:
                 if keyspace in keyspaces_exclude:
+                    continue
+                elif keyspaces_include is not None and keyspace not in keyspaces_include:
                     continue
                 sstables_fs_tree[keyspace] = dict()
                 keyspace_path = os.path.join(self.data_directory, keyspace)
@@ -119,6 +127,7 @@ class CassandraHandler(object):
                     for sstable in sstables:
                         sstable_path = os.path.join(sstables_snapshot_path, sstable)
                         sstables_fs_tree[keyspace][table].append(sstable_path)
+                print sstables_fs_tree
 
         except OSError as e:
             raise CassandraOSError(e)
