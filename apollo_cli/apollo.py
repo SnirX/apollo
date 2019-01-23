@@ -50,7 +50,7 @@ def snapshot(log_level, verbose, ssl_no_verify, node, bucket, aws_access_key, aw
         if slack_alert is True:
             slack_client = SlackNotificationSender(slack_token, slack_channel)
             slack_client.send_notification("Starting snapshot on {node}".format(node=node), message="apollo snapshot")
-            
+
         validate_aws_permissions(aws_access_key, aws_secret_key)
 
         repository_handler = S3Handler(bucket, aws_access_key, aws_secret_key, ssl_no_verify, upload_chunksize,
