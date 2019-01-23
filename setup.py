@@ -4,7 +4,7 @@ setup(
     name='apollo_cli',
     description='Tool for snapshot/restore Cassandra clusters to S3 buckets',
     long_description='Apollo allows you to take full/incremental snapshots of your Cassandra cluster and restore them',
-    version='0.1.3',
+    version='0.1.4',
     license='GPLv3+',
     author='Snir Nissan',
     author_email='snir994@gmail.com',
@@ -16,7 +16,8 @@ setup(
     },
     install_requires=[
         'Click>=7.0',
-        'boto3>=1.9.0'
+        'boto3>=1.9.0',
+        'slackclient>=1.3.0'
     ],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
