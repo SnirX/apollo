@@ -65,11 +65,8 @@ def snapshot(log_level, verbose, ssl_no_verify, node, bucket, aws_access_key, aw
     except Exception as e:
         print >> sys.stderr, e
         if slack_alert is True:
-            try:
-                slack_client.send_notification("Error snapshot {node}".format(node=node), message="apollo snapshot",
-                                               status="error")
-            except Exception as e:
-                print >> sys.stderr, e
+            slack_client.send_notification("Error snapshot {node}".format(node=node), message="apollo snapshot",
+                                           status="error")
 
 
 cli.add_command(snapshot)
