@@ -15,7 +15,7 @@ class CassandraHandler(object):
         self._snapshot_type = snapshot_type
         self._data_directory = data_directory
         self.bin_directory = bin_directory
-        self.keyspaces = keyspaces.split(',')
+        self.keyspaces = keyspaces.split(',') if keyspaces != None else None
         self._nodetool = os.path.join(self.bin_directory, NODETOOL_COMMAND)
         self._snapshot_id = self.export_snapshot() if self._snapshot_type == "full" else None
         self._sstables_to_snapshot = self._return_sstables_list()
@@ -127,7 +127,6 @@ class CassandraHandler(object):
                     for sstable in sstables:
                         sstable_path = os.path.join(sstables_snapshot_path, sstable)
                         sstables_fs_tree[keyspace][table].append(sstable_path)
-                print sstables_fs_tree
 
         except OSError as e:
             raise CassandraOSError(e)
