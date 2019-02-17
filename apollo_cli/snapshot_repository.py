@@ -33,11 +33,11 @@ class S3Handler(RepositoryTemplate):
             aws_access_key_id=self._aws_access_key_id,
             aws_secret_access_key=self._aws_secret_key_id
         )
-        self._upload_chunksize = upload_chunksize
+        self._upload_chunksize = self.convert_kb_to_byte(upload_chunksize)
         self._upload_workers = upload_workers
         self._s3_conn = self._session.resource('s3', verify=not ssl_no_verify,
                                                config=Config(max_pool_connections=self._upload_workers * 15))
-        self._upload_concurrency = self.convert_byte_to_kb(upload_concurrency)
+        self._upload_concurrency = upload_concurrency
         self._storage_class =  storage_class
 
     @property
@@ -82,7 +82,7 @@ class S3Handler(RepositoryTemplate):
             raise S3UploadError(e)
 
     @staticmethod
-    def convert_byte_to_kb(num):
+    def convert_kb_to_byte(num):
         return num * 1024
 
 

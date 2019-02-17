@@ -16,3 +16,7 @@ class S3UploadError(Exception):
 
 class AWSCredentialsError(Exception):
     pass
+
+
+class NotificationError(Exception):
+    pass

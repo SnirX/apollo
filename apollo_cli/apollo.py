@@ -49,7 +49,7 @@ def snapshot(log_level, verbose, ssl_no_verify, node, bucket, aws_access_key, aw
     try:
         if slack_alert is True:
             slack_client = SlackNotificationSender(slack_token, slack_channel)
-            slack_client.send_notification("Starting snapshot on {node}".format(node=node), message="apollo snapshot")
+            slack_client.send_notification("Starting snapshot", node=node, status="normal")
 
         validate_aws_permissions(aws_access_key, aws_secret_key)
 
@@ -61,12 +61,11 @@ def snapshot(log_level, verbose, ssl_no_verify, node, bucket, aws_access_key, aw
         cassandra_backup_to_s3(snapshot_metadata, repository_handler, cassandra_handler, upload_workers, verbose)
         cassandra_handler.clear_snapshot()
         if slack_alert is True:
-            slack_client.send_notification("Successfully backup {node}".format(node=node), message="apollo snapshot")
+            slack_client.send_notification("Successfully snapshot", node=node, status="success")
     except Exception as e:
         print >> sys.stderr, e
         if slack_alert is True:
-            slack_client.send_notification("Error snapshot {node}".format(node=node), message="apollo snapshot",
-                                           status="error")
+            slack_client.send_notification("Error snapshot", node=node, status="failure")
 
 
 cli.add_command(snapshot)

@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from slackclient import SlackClient
+from apollo_exceptions import NotificationError
 
 
 class NotificationSender:
@@ -17,28 +18,31 @@ class SlackNotificationSender(NotificationSender):
         self.token = token
         self.client = SlackClient(self.token)
 
-    def send_notification(self, title, message, status="success"):
+    def send_notification(self, title, node, status="success"):
         self.client.api_call(
             "chat.postMessage",
             channel=self.channel,
-            attachments=self.generate_message(title, message, status)
+            attachments=self.generate_message(title, node, status)
         )
 
     @staticmethod
-    def generate_message(title, message, status):
+    def generate_message(title, node, status):
         if status == "success":
             color = "good"
-        else:
+        elif status == "failure":
             color = "danger"
+        elif status == "normal":
+            color = "#3399FF"
+        else:
+            raise NotificationError("incorrect alert color")
 
         message = [{
             "title": title,
             "title_link": "https://api.slack.com/",
-            "text": message,
             "color": color,
             "fields": [
                 {
-                    "title": title,
+                    "title": node,
                     "short": False
                 }
             ]
